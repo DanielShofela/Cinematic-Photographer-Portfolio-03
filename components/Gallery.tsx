@@ -1,3 +1,4 @@
+
 import React, { useRef } from 'react';
 // FIX: Import 'Variants' type from framer-motion.
 import { motion, Variants } from 'framer-motion';
@@ -62,13 +63,26 @@ const Gallery: React.FC<GalleryProps> = ({ onSelect }) => {
             onMouseEnter={() => {
               setVariant('hover');
               if (item.type === 'video') {
-                videoRefs.current[index]?.play();
+                const videoEl = videoRefs.current[index];
+                if (videoEl) {
+                  // The play() method returns a promise. We'll handle it to avoid uncaught errors.
+                  const playPromise = videoEl.play();
+                  if (playPromise !== undefined) {
+                    playPromise.catch(() => {
+                      // Autoplay was prevented. We can silently ignore in this UI.
+                    });
+                  }
+                }
               }
             }}
             onMouseLeave={() => {
               setVariant('default');
               if (item.type === 'video') {
-                videoRefs.current[index]?.pause();
+                const videoEl = videoRefs.current[index];
+                if (videoEl) {
+                  videoEl.pause();
+                  videoEl.currentTime = 0; // Reset video to the beginning for the next hover.
+                }
               }
             }}
           >
@@ -94,8 +108,8 @@ const Gallery: React.FC<GalleryProps> = ({ onSelect }) => {
                 playsInline
               />
             )}
-            <div className="absolute inset-0 bg-black/20 group-hover:bg-black/50 transition-colors duration-300 flex items-end p-4">
-              <h3 className="text-white font-heading tracking-wider text-xl opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-300">
+            <div className="absolute inset-0 flex items-end p-4 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-in-out">
+              <h3 className="text-white font-heading tracking-wider text-xl opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 ease-in-out">
                 {item.title}
               </h3>
             </div>
